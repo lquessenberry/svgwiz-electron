@@ -1,0 +1,47 @@
+app-id: com.example.svgwiz
+runtime: org.freedesktop.Platform
+runtime-version: '22.08'
+sdk: org.freedesktop.Sdk
+base: io.atom.electron.BaseApp
+base-version: '22.08'
+command: svgwiz
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=pulseaudio
+  - --share=network
+  - --filesystem=home
+  # The following permissions allow SVGwiz to access SVG files from the user's filesystem
+  - --filesystem=xdg-documents
+  - --filesystem=xdg-pictures
+  - --filesystem=xdg-download
+modules:
+  - name: svgwiz
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 svgwiz.sh /app/bin/svgwiz
+      - install -D package.json /app/share/svgwiz/package.json
+      - cp -r src/ /app/share/svgwiz/src/
+      - cp -r renderer/ /app/share/svgwiz/renderer/
+      - cp -r assets/ /app/share/svgwiz/assets/
+      - mkdir -p /app/share/applications
+      - install -D com.example.svgwiz.desktop /app/share/applications/com.example.svgwiz.desktop
+      - mkdir -p /app/share/icons/hicolor/256x256/apps
+      - |
+          if [ -f assets/icons/icon.png ]; then \
+            install -D assets/icons/icon.png /app/share/icons/hicolor/256x256/apps/com.example.svgwiz.png; \
+          else \
+            echo "No icon found at assets/icons/icon.png, skipping icon install"; \
+          fi
+    sources:
+      - type: dir
+        path: ..
+      - type: file
+        path: svgwiz.sh
+      - type: file
+        path: com.example.svgwiz.desktop
+    build-options:
+      env:
+        NPM_CONFIG_LOGLEVEL: info
+    post-install:
+      - cd /app/share/svgwiz && npm install --production

@@ -1,0 +1,53 @@
+# Node
+node_modules/
+.npm/
+
+# Vite
+.vite/
+**/.vite/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Env files
+.env
+.env.local
+.env.*.local
+renderer/.env
+renderer/.env.local
+renderer/.env.*.local
+
+# Build outputs
+renderer/dist/
+dist/
+build/
+out/
+coverage/
+
+# Electron builder artifacts
+*.AppImage
+*.deb
+*.rpm
+*.snap
+*.dmg
+*.exe
+*.msi
+release/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+*.swp
+*.swo
+*.tmp
+*.bak

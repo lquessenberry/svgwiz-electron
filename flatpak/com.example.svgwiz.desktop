@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=SVGwiz
+Comment=Clean, optimize and transform your SVGs
+Exec=svgwiz %u
+Icon=com.example.svgwiz
+Type=Application
+Categories=Graphics;Development;
+Keywords=svg;vector;graphics;converter;optimizer;
+MimeType=x-scheme-handler/svgwiz;

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Relaxed CSP to work with file:// scheme in packaged apps so scripts load -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' http://localhost:*; script-src 'self' http://localhost:* https://js.stripe.com 'unsafe-inline' 'unsafe-eval' data: blob: file:; style-src 'self' http://localhost:* 'unsafe-inline'; img-src 'self' data: blob: file: https:; connect-src 'self' http://localhost:* https:; frame-src https://js.stripe.com https://*.stripe.com;">
+  <title>SVGwiz</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="./index.jsx"></script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+/* Tailwind Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #4D4D98; /* Purple */
+    --color-secondary: #EB9776; /* Orange-Red */
+    --color-accent: #8EAC84; /* Green */
+    --color-background: #FDFCEE; /* White */
+    --color-surface: #FDFCEE; /* White */
+    --color-border: #F9F3D7; /* Light Gray */
+    --color-text: #030303; /* Black */
+    --color-text-light: #4D4D98; /* Purple */
+    --color-error: #EB9776; /* Orange-Red */
+    --color-success: #8EAC84; /* Green */
+  }
+
+  .dark {
+    --color-primary: #4D4D98; /* Purple */
+    --color-secondary: #EB9776; /* Orange-Red */
+    --color-accent: #8EAC84; /* Green */
+    --color-background: #030303; /* Black */
+    --color-surface: #161616; /* Slightly lighter black for surfaces */
+    --color-border: #333333; /* Darker gray for borders */
+    --color-text: #FDFCEE; /* White */
+    --color-text-light: #F9F3D7; /* Light Gray */
+    --color-error: #EB9776; /* Orange-Red */
+    --color-success: #8EAC84; /* Green */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom utilities for CTA gradient, glitch text, and mascot twitch */
+@layer utilities {
+  .cta-gradient {
+    background: linear-gradient(90deg, #ff0066, #00ccff, #ffcc00, #ff0066);
+    background-size: 300% 100%;
+    animation: flow 4s linear infinite;
+    filter: blur(16px) saturate(1.25);
+    opacity: 0.25;
+  }
+
+  @keyframes flow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+  }
+
+  .glitch-text {
+    position: relative;
+    text-shadow:
+      0 0 6px rgba(255, 0, 102, 0.5),
+      0 0 10px rgba(0, 204, 255, 0.45);
+  }
+  .glitch-text::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0;
+    top: 0;
+    mix-blend-mode: screen;
+    color: var(--color-text);
+    opacity: 0.55;
+    animation: glitch 2.4s infinite linear alternate-reverse;
+  }
+  @keyframes glitch {
+    0%   { transform: translate(0, 0); }
+    20%  { transform: translate(1px, -1px); }
+    40%  { transform: translate(-1px, 1px); }
+    60%  { transform: translate(1px, 1px); }
+    80%  { transform: translate(-1px, -1px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  .twitch { animation: twitch 3s ease-in-out infinite; transform-origin: 60% 60%; }
+  @keyframes twitch {
+    0%, 90%, 100% { transform: translateY(0) rotate(0deg); }
+    92% { transform: translateY(-0.5px) rotate(0.25deg); }
+    96% { transform: translateY(0.6px) rotate(-0.25deg); }
+    98% { transform: translateY(-0.3px) rotate(0.15deg); }
+  }
+
+  /* Compact SVG tile previews */
+  .svg-tile { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    background-color: var(--color-background);
+    border-radius: 0.25rem;
+  }
+  .dark .svg-tile {
+    background-color: var(--color-surface);
+  }
+  .svg-tile svg, .svg-tile img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    display: block;
+  }
+  /* Ion glow for inline SVG (keeps default fills/strokes) */
+  .ion-glow {
+    filter:
+      drop-shadow(0 0 3px rgba(168, 85, 247, 0.20))
+      drop-shadow(0 0 8px rgba(168, 85, 247, 0.15));
+    animation: ionPulse 11s ease-in-out infinite;
+  }
+  .dark .ion-glow {
+    filter:
+      drop-shadow(0 0 2px rgba(193, 133, 255, 0.25))
+      drop-shadow(0 0 12px rgba(193, 133, 255, 0.18));
+  }
+  @keyframes ionPulse {
+    0%, 84%, 100% {
+      filter:
+        drop-shadow(0 0 3px rgba(168, 85, 247, 0.20))
+        drop-shadow(0 0 8px rgba(168, 85, 247, 0.15));
+    }
+    86% {
+      filter:
+        drop-shadow(0 0 8px rgba(168, 85, 247, 0.45))
+        drop-shadow(0 0 18px rgba(168, 85, 247, 0.35));
+    }
+    90% {
+      filter:
+        drop-shadow(0 0 5px rgba(168, 85, 247, 0.25))
+        drop-shadow(0 0 12px rgba(168, 85, 247, 0.20));
+    }
+    93% {
+      filter:
+        drop-shadow(0 0 12px rgba(168, 85, 247, 0.55))
+        drop-shadow(0 0 28px rgba(168, 85, 247, 0.40));
+    }
+    96% {
+      filter:
+        drop-shadow(0 0 5px rgba(168, 85, 247, 0.25))
+        drop-shadow(0 0 12px rgba(168, 85, 247, 0.20));
+    }
+  }
+
+  /* Purple ion energy waves overlay */
+  .ion-waves-host { position: relative; display: inline-block; }
+  .ion-waves-host::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 10px;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    filter: blur(8px) saturate(1.1) hue-rotate(0deg);
+    opacity: 0.10;
+    background:
+      radial-gradient(60% 60% at 50% 45%, rgba(168, 85, 247, 0.18), transparent 60%),
+      radial-gradient(40% 40% at 60% 60%, rgba(124, 58, 237, 0.15), transparent 60%),
+      conic-gradient(from 0deg at 50% 50%, rgba(168, 85, 247, 0.12), rgba(124, 58, 237, 0.08), rgba(168, 85, 247, 0.12));
+    animation: ionWaves 14s linear infinite, ionFlicker 14s steps(1, end) infinite, hueSpin 20s linear infinite;
+  }
+  @keyframes ionWaves {
+    0%   { transform: rotate(0deg) scale(1); }
+    50%  { transform: rotate(1.5deg) scale(1.02); }
+    100% { transform: rotate(0deg) scale(1); }
+  }
+  @keyframes ionFlicker {
+    0%, 80%, 100% { opacity: 0.08; }
+    82% { opacity: 0.22; }
+    86% { opacity: 0.14; }
+    90% { opacity: 0.28; }
+    92% { opacity: 0.12; }
+    96% { opacity: 0.20; }
+  }
+  @keyframes hueSpin {
+    0% { filter: blur(8px) saturate(1.1) hue-rotate(0deg); }
+    100% { filter: blur(8px) saturate(1.1) hue-rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ion-glow, .ion-waves-host::after { animation: none !important; }
+  }
+}
+@layer utilities {
+  /* Strong red Rudolph-style glow on the inline SVG */
+  .rudolph-glow {
+    filter:
+      drop-shadow(0 0 4px rgba(255, 72, 72, 0.25))
+      drop-shadow(0 0 10px rgba(255, 72, 72, 0.15));
+    animation: rudolphPulse 7s ease-in-out infinite;
+  }
+  @keyframes rudolphPulse {
+    0%, 60%, 100% {
+      filter:
+        drop-shadow(0 0 4px rgba(255, 72, 72, 0.25))
+        drop-shadow(0 0 10px rgba(255, 72, 72, 0.15));
+    }
+    45% {
+      filter:
+        drop-shadow(0 0 8px rgba(255, 72, 72, 0.45))
+        drop-shadow(0 0 18px rgba(255, 72, 72, 0.35));
+    }
+    50% {
+      filter:
+        drop-shadow(0 0 18px rgba(255, 72, 72, 0.65))
+        drop-shadow(0 0 36px rgba(255, 72, 72, 0.45));
+    }
+    55% {
+      filter:
+        drop-shadow(0 0 8px rgba(255, 72, 72, 0.45))
+        drop-shadow(0 0 18px rgba(255, 72, 72, 0.35));
+    }
+  }
+
+  /* Elton-esque sparkles */
+  .sparkle-host { position: relative; display: inline-block; }
+  .sparkle-host .sparkle {
+    position: absolute;
+    pointer-events: none;
+    width: var(--s, 8px);
+    height: var(--s, 8px);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.2) 40%, rgba(168, 85, 247, 0.24) 55%, rgba(168, 85, 247, 0) 70%);
+    opacity: 0;
+    filter: drop-shadow(0 0 6px rgba(255,255,255,0.5));
+    animation: sparkleTwinkle var(--d, 4s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+  .dark .sparkle-host .sparkle { filter: drop-shadow(0 0 6px rgba(255,255,255,0.6)); }
+  @keyframes sparkleTwinkle {
+    0%, 20% { opacity: 0; transform: translate(-50%, -50%) scale(0.6) rotate(0deg); }
+    22% { opacity: 1; transform: translate(-50%, -50%) scale(1.0) rotate(15deg); }
+    28% { opacity: 0.85; transform: translate(-50%, -50%) scale(0.9) rotate(-10deg); }
+    34% { opacity: 0; transform: translate(-50%, -50%) scale(0.6) rotate(0deg); }
+    100% { opacity: 0; }
+  }
+
+  /* Rudolph nose aura near the center */
+  .sparkle-host::before {
+    content: "";
+    position: absolute;
+    left: 50%; top: 55%;
+    transform: translate(-50%, -50%);
+    width: 26%; height: 26%;
+    border-radius: 50%;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    background: radial-gradient(closest-side, rgba(255, 72, 72, 0.35), rgba(255, 72, 72, 0.0));
+    filter: blur(6px);
+    animation: rudolphAura 7s ease-in-out infinite;
+  }
+  @keyframes rudolphAura {
+    0%, 60%, 100% { opacity: 0.25; }
+    45% { opacity: 0.5; }
+    50% { opacity: 0.8; }
+    55% { opacity: 0.5; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rudolph-glow, .sparkle-host .sparkle, .sparkle-host::before { animation: none !important; }
+  }
+}
