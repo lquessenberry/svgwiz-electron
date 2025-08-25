@@ -9,11 +9,11 @@
     "dev": "concurrently -k \"npm:dev:*\"",
     "dev:vite": "vite renderer",
     "dev:electron": "cross-env NODE_ENV=development electron . --dev",
-    "build": "vite build renderer && node scripts/fix-html-paths.js && electron-builder",
-    "build:vite": "vite build renderer && node scripts/fix-html-paths.js",
+    "build": "vite build renderer && node scripts/fix-html-paths.js && node scripts/set-prod-csp.js && electron-builder",
+    "build:vite": "vite build renderer && node scripts/fix-html-paths.js && node scripts/set-prod-csp.js",
     "lint": "standard",
     "pack": "vite build renderer && electron-builder --dir",
-    "dist": "vite build renderer && node scripts/fix-html-paths.js && electron-builder",
+    "dist": "vite build renderer && node scripts/fix-html-paths.js && node scripts/set-prod-csp.js && electron-builder",
     "postinstall": "electron-builder install-app-deps"
   },
   "repository": {
@@ -100,7 +100,8 @@
     },
     "snap": {
       "confinement": "strict",
-      "grade": "stable"
+      "grade": "stable",
+      "plugs": ["home", "network", "x11", "audio"]
     },
     "flatpak": {
       "runtimeVersion": "22.08"

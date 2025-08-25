@@ -11,7 +11,7 @@ export default defineConfig({
     postcss: './postcss.config.js',
   },
   build: {
-    outDir: '../dist/renderer',
+    outDir: '../renderer/dist',
     emptyOutDir: true,
     assetsDir: 'assets', // Keep assets in a known directory
     rollupOptions: {
