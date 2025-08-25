@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron')
 const path = require('path')
 const url = require('url')
 const fs = require('fs')
+const os = require('os')
 const svgsus = require('svgsus')
 const Store = require('electron-store')
 const nacl = require('tweetnacl')
@@ -46,6 +47,85 @@ if (!gotLock) {
       }
     } catch (_) {}
   })
+}
+
+// Navigation, security, and logging setup
+const ALLOWED_EXTERNAL = new Set([
+  'js.stripe.com',
+  'buy.stripe.com',
+  'stripe.com',
+  '*.stripe.com'
+])
+const ALLOWED_OPEN = new Set([
+  'js.stripe.com',
+  'buy.stripe.com',
+  'stripe.com',
+  '*.stripe.com'
+])
+app.on('web-contents-created', (_e, contents) => {
+  contents.on('will-navigate', (event) => {
+    try { event.preventDefault() } catch (_) {}
+  })
+  contents.setWindowOpenHandler(({ url }) => {
+    try {
+      const { hostname, protocol } = new URL(url)
+      const https = protocol === 'https:'
+      const allowed = https && ([...ALLOWED_EXTERNAL].some(pattern => {
+        if (pattern.startsWith('*.')) return hostname.endsWith(pattern.slice(1))
+        return hostname === pattern
+      }))
+      if (allowed) return { action: 'allow' }
+    } catch (_) {}
+    return { action: 'deny' }
+  })
+})
+
+function setupLogging () {
+  try {
+    const logDir = path.join(app.getPath('userData'), 'logs')
+    fs.mkdirSync(logDir, { recursive: true })
+    const logFile = path.join(logDir, 'svgwiz.log')
+    const log = (msg) => fs.appendFileSync(logFile, `[${new Date().toISOString()}] ${msg}\n`)
+    process.on('uncaughtException', (err) => log(`uncaughtException: ${err.stack || err}`))
+    process.on('unhandledRejection', (r) => log(`unhandledRejection: ${r?.stack || r}`))
+    app.on('renderer-process-crashed', (_e, wc) => log(`renderer crashed: ${wc?.id}`))
+  } catch (_) {}
+}
+app.whenReady().then(setupLogging)
+
+// Deny permission prompts by default
+app.whenReady().then(() => {
+  const { session } = require('electron')
+  const ses = session.defaultSession
+  try {
+    ses.setPermissionRequestHandler((_wc, _permission, callback) => { callback(false) })
+  } catch (_) {}
+})
+
+// Dev-time CSP header for Vite http://localhost:517x
+app.whenReady().then(() => {
+  const { session } = require('electron')
+  const ses = session.defaultSession
+  try {
+    ses.webRequest.onHeadersReceived((details, callback) => {
+      const isDevLocal = /^http:\/\/localhost:517\d/.test(details.url)
+      const headers = details.responseHeaders || {}
+      if (isDevLocal) {
+        headers['Content-Security-Policy'] = [
+          "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://api.stripe.com ws://localhost:*; frame-src https://js.stripe.com https://*.stripe.com;"
+        ]
+      }
+      callback({ responseHeaders: headers })
+    })
+  } catch (_) {}
+})
+
+// Constrain file writes to home/Downloads
+function isAllowedPath (p) {
+  const real = fs.realpathSync.native ? fs.realpathSync.native(p) : fs.realpathSync(p)
+  const home = os.homedir()
+  const downloads = app.getPath('downloads')
+  return real.startsWith(home + path.sep) || real.startsWith(downloads + path.sep)
 }
 
 // Normalize formatter outputs so the renderer always gets strings
@@ -195,15 +275,20 @@ function createWindow () {
     // Detect which port Vite is running on - try common ports
     const checkPort = async (port) => {
       return new Promise(resolve => {
-        const req = require('http').get(`http://localhost:${port}`, () => {
-          resolve(true)
-        }).on('error', () => {
+        try {
+          const http = require('http')
+          const req = http.get(`http://localhost:${port}/@vite/client`, (res) => {
+            resolve(res.statusCode === 200)
+          }).on('error', () => {
+            resolve(false)
+          })
+          req.setTimeout(800, () => {
+            try { req.destroy() } catch (_) {}
+            resolve(false)
+          })
+        } catch (_) {
           resolve(false)
-        })
-        req.setTimeout(300, () => {
-          req.abort()
-          resolve(false)
-        })
+        }
       })
     }
 
@@ -324,10 +409,15 @@ ipcMain.handle('git-branch', async (event, { dir, name }) => gitSvc.createBranch
 ipcMain.handle('git-merge', async (event, { dir, sourceBranch }) => gitSvc.merge(dir, sourceBranch))
 ipcMain.handle('git-log', async (event, { dir, limit }) => gitSvc.log(dir, limit || 50))
 
-// Exports: rasterization (png/jpeg/webp/avif)
+// Exports: rasterization (png/jpeg/webp/avif) with validation
 ipcMain.handle('export-raster', async (event, { input, format, options }) => {
   try {
-    return await exportsSvc.rasterize(input, format, options)
+    const ALLOWED_EXPORT_FORMATS = new Set(['png', 'jpeg', 'jpg', 'webp', 'avif'])
+    const fmt = String(format || '').toLowerCase()
+    if (typeof input !== 'string' || input.length === 0) throw new Error('input required')
+    if (!ALLOWED_EXPORT_FORMATS.has(fmt)) throw new Error('invalid format')
+    if (!(options == null || typeof options === 'object')) throw new Error('bad options')
+    return await exportsSvc.rasterize(input, fmt, options)
   } catch (e) {
     return { success: false, error: e.message }
   }
@@ -540,13 +630,23 @@ ipcMain.handle('get-install-id', async () => {
   }
 })
 
+// App version IPC
+ipcMain.handle('get-app-version', async () => {
+  try { return app.getVersion() } catch (_) { return 'unknown' }
+})
+
 ipcMain.handle('open-external', async (event, { url }) => {
   try {
-    if (typeof url === 'string' && /^https?:\/\//i.test(url)) {
-      await shell.openExternal(url)
-      return { success: true }
-    }
-    throw new Error('Invalid URL')
+    if (typeof url !== 'string') throw new Error('Invalid URL')
+    const { protocol, hostname } = new URL(url)
+    const https = protocol === 'https:'
+    const allowed = https && ([...ALLOWED_OPEN].some(pattern => {
+      if (pattern.startsWith('*.')) return hostname.endsWith(pattern.slice(1))
+      return hostname === pattern
+    }))
+    if (!allowed) throw new Error('Domain not allowed')
+    await shell.openExternal(url)
+    return { success: true }
   } catch (error) {
     console.error('Failed to open external URL:', error)
     return { success: false, error: error.message }
@@ -589,6 +689,8 @@ ipcMain.handle('save-file-dialog', async (event, { format }) => {
 
 ipcMain.handle('save-to-file', async (event, { filePath, content }) => {
   try {
+    if (!filePath || typeof content !== 'string') throw new Error('Bad input')
+    if (!isAllowedPath(filePath)) throw new Error('Blocked path')
     fs.writeFileSync(filePath, content)
     return { success: true, filePath }
   } catch (e) {

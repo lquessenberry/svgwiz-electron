@@ -38,7 +38,7 @@ contextBridge.exposeInMainWorld('api', {
   exportRaster: (input, format, options) => ipcRenderer.invoke('export-raster', { input, format, options }),
   
   // App info
-  getAppVersion: () => process.env.npm_package_version,
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   
   // Logging
   logError: (message, error) => ipcRenderer.invoke('log-error', { message, error }),
