@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import gwizRaw from '../../assets/icons/gwiz.svg?raw';
 
 const DonationBar = () => {
@@ -12,6 +12,13 @@ const DonationBar = () => {
   const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
   const STRIPE_PAYMENT_LINK_URL = import.meta.env.VITE_STRIPE_PAYMENT_LINK_URL || '';
   const HAS_STRIPE_BUTTON = Boolean(STRIPE_BUY_BUTTON_ID && STRIPE_PUBLISHABLE_KEY);
+  const copyPayPal = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText('https://paypal.me/lquessenberry');
+    } catch (_) {
+      // No-op; user can select the visible link text below
+    }
+  }, []);
   const gwizMarkup = useMemo(() => {
     // strip xml prolog if present
     let markup = String(gwizRaw || '').replace(/<\?xml[^>]*>/, '');
@@ -106,7 +113,10 @@ const DonationBar = () => {
                   <ul className="text-sm space-y-2">
                     <li>
                       <strong>PayPal (tip):</strong>{' '}
-                      <a className="underline" target="_blank" rel="noreferrer" href="https://paypal.me/lquessenberry">paypal.me/lquessenberry</a>
+                      <span className="inline-flex items-center gap-2 align-middle">
+                        <span className="font-mono text-xs select-all">paypal.me/lquessenberry</span>
+                        <button onClick={copyPayPal} className="underline">Copy</button>
+                      </span>
                     </li>
                     <li>
                       <strong>Stripe (full license):</strong>{' '}
